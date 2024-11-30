@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>股票回歸線</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>股票回歸線</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            displayGraph();
+        });
+
+        function displayGraph() {
+            const stockId = "2330"; // 預設的股票代號
+
+            // 模擬數據: x - 月份, y - 交易量, z - 均價
+            const xValues = Array.from({ length: 12 }, (_, i) => i + 1); // 1-12月
+            const yValues = Array.from({ length: 12 }, () => Math.floor(Math.random() * 10000 + 1000)); // 隨機交易量
+            const zValues = Array.from({ length: 12 }, () => Math.random() * 500 + 50); // 隨機均價
+
+            // 計算回歸平面 (用簡單線性回歸公式擬合: z = a * x + b * y + c)
+            // 計算 x, y, z 的平均值
+            const xMean = xValues.reduce((sum, val) => sum + val, 0) / xValues.length;
+            const yMean = yValues.reduce((sum, val) => sum + val, 0) / yValues.length;
+            const zMean = zValues.reduce((sum, val) => sum + val, 0) / zValues.length;
+
+            // 計算 a, b 的係數 (簡化版線性回歸)
+            let numeratorA = 0, denominatorA = 0;
+            let numeratorB = 0, denominatorB = 0;
+            for (let i = 0; i < xValues.length; i++) {
+                numeratorA += (xValues[i] - xMean) * (zValues[i] - zMean);
+                denominatorA += Math.pow(xValues[i] - xMean, 2);
+
+                numeratorB += (yValues[i] - yMean) * (zValues[i] - zMean);
+                denominatorB += Math.pow(yValues[i] - yMean, 2);
+            }
+            const a = numeratorA / denominatorA;
+            const b = numeratorB / denominatorB;
+            const c = zMean - a * xMean - b * yMean;
+
+            // 生成回歸平面的網格數據
+            const xGrid = Array.from({ length: 10 }, (_, i) => i + 1); // x 軸網格
+            const yGrid = Array.from({ length: 10 }, (_, i) => i * 1000 + 1000); // y 軸網格
+            const zGrid = xGrid.map(x => yGrid.map(y => a * x + b * y + c)); // z 軸值
+
+            // 3D 散點圖數據
+            const scatterTrace = {
+                x: xValues,
+                y: yValues,
+                z: zValues,
+                mode: 'markers',
+                type: 'scatter3d',
+                marker: { size: 5, color: 'blue' },
+                name: `Stock ${stockId}`
+            };
+
+            // 回歸平面數據
+            const surfaceTrace = {
+                x: xGrid,
+                y: yGrid,
+                z: zGrid,
+                type: 'surface',
+                colorscale: 'Viridis',
+                opacity: 0.7,
+                name: '回歸平面'
+            };
+
+            const layout = {
+                title: `股票 ${stockId} 的三維回歸分析`,
+                scene: {
+                    xaxis: { title: '月份' },
+                    yaxis: { title: '交易量' },
+                    zaxis: { title: '均價' }
+                }
+            };
+
+            Plotly.newPlot('myDiv', [scatterTrace, surfaceTrace], layout);
+        }
+    </script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.6);
+        }
+
+        #myDiv {
+            margin-top: 30px;
+            width: 80%;
+            height: 400px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <h1 id="pageTitle">股票回歸平面視覺化</h1>
+    <div id="myDiv"></div>
+</body>
+</html>
